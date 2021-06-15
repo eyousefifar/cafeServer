@@ -1,0 +1,129 @@
+version: '3'
+services:
+  postgres:
+    image: "docker.xaas.ir/postgres"
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: erfi 
+      POSTGRES_USER: postgres
+    volumes:
+      - cafechi_postgres_db_volume:/var/lib/postgresql/data
+    networks:
+      - cafechi_shared_network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 2G
+        reservations:
+          cpus: '4'
+          memory: 2G
+  cafechi_server_01:
+    build:
+      context: .
+      dockerfile: dockerfile_web
+    image: cafechi_server
+    container_name: cafechi_server_01
+    environment:
+      WAIT_HOSTS: postgres:5432
+    depends_on:
+      - postgres
+    networks:
+      - ball_nginx_proxy
+      - cafechi_shared_network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 250M
+        reservations:
+          cpus: '1'
+          memory: 250M
+  cafechi_server_02:
+    build:
+      context: .
+      dockerfile: dockerfile_web
+    image: cafechi_server
+    container_name: cafechi_server_02
+    environment:
+      WAIT_HOSTS: cafechi_server_01:5000
+    depends_on:
+      - cafechi_server_01
+    networks:
+      - ball_nginx_proxy
+      - cafechi_shared_network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 250M
+        reservations:
+          cpus: '1'
+          memory: 250M
+  cafechi_server_03:
+    build:
+      context: .
+      dockerfile: dockerfile_web
+    image: cafechi_server
+    container_name: cafechi_server_03
+    environment:
+      WAIT_HOSTS: cafechi_server_01:5000
+    depends_on:
+      - cafechi_server_01
+    networks:
+      - ball_nginx_proxy
+      - cafechi_shared_network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 250M
+        reservations:
+          cpus: '1'
+          memory: 250M
+  cafechi_server_04:
+    build:
+      context: .
+      dockerfile: dockerfile_web
+    image: cafechi_server
+    container_name: cafechi_server_04
+    environment:
+      WAIT_HOSTS: cafechi_server_01:5000
+    depends_on:
+      - cafechi_server_01
+    networks:
+      - ball_nginx_proxy
+      - cafechi_shared_network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 250M
+        reservations:
+          cpus: '1'
+          memory: 250M
+  cafechi_nginx_proxy:
+    build:
+      context: .
+      dockerfile: dockerfile_webserver
+    image: cafechi_nginx_proxy
+    container_name: cafechi_nginx_proxy
+    hostname: cafechi_nginx_proxy
+    networks:
+      - cafechi_shared_network
+    depends_on:
+      - cafechi_server_01
+      - cafechi_server_02
+      - cafechi_server_03
+      - cafechi_server_04
+    ports:
+      - "3000:3000"
+networks:
+  cafechi_shared_network:
+volumes:
+  cafechi_postgres_db_volume:
